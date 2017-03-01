@@ -1,128 +1,107 @@
 require_relative 'pieces'
 
 class Board
-  attr_reader :rows
 
-  def initialize(fill_board = true)
+  attr_accessor :grid
+
+  def initialize
     @sentinel = NullPiece.instance
-    make_starting_grid(fill_board)
+    make_starting_grid
   end
 
-  def [](pos)
-    raise 'invalid pos' unless valid_pos?(pos)
-
-    row, col = pos
-    @rows[row][col]
+  def make_starting_grid
+    @grid = Array.new(8) { Array.new(8) }
+    @grid[0] = back_row(:black, 0)
+    @grid[1] = pawn_row(:black, 1)
+    @grid[2] = Array.new(8) { NullPiece.instance }
+    @grid[3] = Array.new(8) { NullPiece.instance }
+    @grid[4] = Array.new(8) { NullPiece.instance }
+    @grid[5] = Array.new(8) { NullPiece.instance }
+    @grid[6] = pawn_row(:black, 6)
+    @grid[7] = back_row(:white, 7)
   end
 
-  def []=(pos, piece)
-    raise 'invalid pos' unless valid_pos?(pos)
-
-    row, col = pos
-    @rows[row][col] = piece
+  def back_row(color, row)
+    pieces = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
+    row_of_pieces = pieces.each_with_index do |piece_class, j|
+      piece_class.new(color, self, [row, j])
+    end
+    return row_of_pieces
   end
 
-  def add_piece(piece, pos)
-    raise 'position not empty' unless empty?(pos)
+  def pawn_row(color, row)
+    8.times { |j| Pawn.new(color, self, [row, j]) }
+  end
 
-    self[pos] = piece
+  def in_check?(check_color)
+    king_space = nil
+    @grid.each do |row|
+      row.each do |space|
+        if space.is_a?(King) && space.color == check_color
+          king_space = space.pos
+          break
+        end
+      end
+    end
+    opposing_color = nil
+    check_color == :white ? opposing_color = :black : opposing_color = :white
+    check_all(king_space, opposing_color)
+  end
+
+  def check_all(king,color)
+    @grid.each do |row|
+      row.each do |space|
+        if space.color == color
+          return true if space.moves.include?(king)
+        end
+      end
+    end
+    false
   end
 
   def checkmate?(color)
-    return false unless in_check?(color)
-
-    pieces.select { |p| p.color == color }.all? do |piece|
-      piece.valid_moves.empty?
+    if in_check?(color)
+      @grid.each do |row|
+        row.each do |space|
+          if space.color == color && !space.valid_moves.empty?
+            return false
+          end
+        end
+      end
+      return true
     end
+    false
   end
 
-  def dup
-    new_board = Board.new(false)
 
-    pieces.each do |piece|
-      piece.class.new(piece.color, new_board, piece.pos)
-    end
 
-    new_board
-  end
-
-  def empty?(pos)
-    self[pos].empty?
-  end
-
-  def in_check?(color)
-    king_pos = find_king(color).pos
-    pieces.any? do |p|
-      p.color != color && p.moves.include?(king_pos)
-    end
-  end
-
-  def move_piece(turn_color, start_pos, end_pos)
-    raise 'start position is empty' if empty?(start_pos)
-
+  def move_piece(start_pos,end_pos)
     piece = self[start_pos]
-    if piece.color != turn_color
-      raise 'You must move your own piece'
-    elsif !piece.moves.include?(end_pos)
-      raise 'Piece does not move like that'
+    if piece.is_a?(NullPiece)
+      raise NoPieceError.new ("There is no piece in this starting pos")
     elsif !piece.valid_moves.include?(end_pos)
-      raise 'You cannot move into check'
+      raise "You cannot move here")
     end
-
-    move_piece!(start_pos, end_pos)
-  end
-
-  # move without performing checks
-  def move_piece!(start_pos, end_pos)
-    piece = self[start_pos]
-    raise 'piece cannot move like that' unless piece.moves.include?(end_pos)
-
     self[end_pos] = piece
-    self[start_pos] = sentinel
     piece.pos = end_pos
-
+    self[start_pos] = @sentinel
     nil
   end
 
-  def pieces
-    @rows.flatten.reject { |piece| piece.empty? }
+  def [](pos)
+    x, y = pos
+    @grid[x][y]
   end
 
-  def valid_pos?(pos)
-    pos.all? { |coord| coord.between?(0, 7) }
+  def []=(pos,value)
+    x,y = pos
+    grid[x][y] = value
   end
 
-  private
-  attr_reader :sentinel
-
-  def fill_back_row(color)
-    back_pieces = [
-      Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook
-    ]
-
-    i = (color == :white) ? 7 : 0
-    back_pieces.each_with_index do |piece_class, j|
-      piece_class.new(color, self, [i, j])
-    end
+  def in_bounds?(pos)
+    x, y = pos
+    (x > -1 && x < 8) && (y > -1 && y < 8)
   end
 
-  def fill_pawns_row(color)
-    i = (color == :white) ? 6 : 1
-    8.times { |j| Pawn.new(color, self, [i, j]) }
-  end
-
-  def find_king(color)
-    king_pos = pieces.find { |p| p.color == color && p.is_a?(King) }
-    king_pos || (raise 'king not found?')
-  end
-
-  def make_starting_grid(fill_board)
-    @rows = Array.new(8) { Array.new(8, sentinel) }
-    return unless fill_board
-    [:white, :black].each do |color|
-      fill_back_row(color)
-      fill_pawns_row(color)
-    end
-  end
 
 end

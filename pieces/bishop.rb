@@ -1,16 +1,15 @@
-require_relative 'piece'
-require_relative 'slideable'
-
 class Bishop < Piece
-  include Slideable
 
-  def symbol
-    '♝'.colorize(color)
+  def initialize(board,color)
+    super(board, color)
+    @symbol = '♝'.colorize(color)
   end
 
-  protected
+  include Slideable
 
-  def move_dirs
-    diagonal_dirs
+  private
+
+  def move_directions
+    [[1,1],[-1,1],[-1,-1],[1,-1]]
   end
 end

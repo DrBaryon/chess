@@ -1,4 +1,5 @@
 require "io/console"
+require 'byebug'
 
 KEYMAP = {
   " " => :space,
@@ -32,7 +33,7 @@ MOVES = {
 
 class Cursor
 
-  attr_reader :cursor_pos, :board, :selected
+  attr_reader :cursor_pos, :board
 
   def initialize(cursor_pos, board)
     @cursor_pos = cursor_pos
@@ -51,39 +52,55 @@ class Cursor
 
   private
 
-  def handle_key(key)
-    case key
-    when :ctrl_c
-      exit 0
-    when :return, :space
-      toggle_selected
-      cursor_pos
-    when :left, :right, :up, :down
-      update_pos(MOVES[key])
-      nil
-    else
-      puts key
-    end
-  end
-
   def read_char
-    STDIN.echo = false
-    STDIN.raw!
+    STDIN.echo = false # stops the console from printing return values
 
-    input = STDIN.getc.chr
+    STDIN.raw! # in raw mode data is given as is to the program--the system
+                 # doesn't preprocess special characters such as control-c
+
+    input = STDIN.getc.chr # STDIN.getc reads a one-character string as a
+                             # numeric keycode. chr returns a string of the
+                             # character represented by the keycode.
+                             # (e.g. 65.chr => "A")
+
     if input == "\e" then
-      input << STDIN.read_nonblock(3) rescue nil
+      input << STDIN.read_nonblock(3) rescue nil # read_nonblock(maxlen) reads
+                                                   # at most maxlen bytes from a
+                                                   # data stream; it's nonblocking,
+                                                   # meaning the method executes
+                                                   # asynchronously; it raises an
+                                                   # error if no data is available,
+                                                   # hence the need for rescue
+
       input << STDIN.read_nonblock(2) rescue nil
     end
 
-    STDIN.echo = true
-    STDIN.cooked!
+    STDIN.echo = true # the console prints return values again
+    STDIN.cooked! # the opposite of raw mode :)
 
     return input
   end
 
+  def handle_key(key)
+    #debugger
+    case key
+    when :return,:space
+      puts @cursor_pos
+      return @cursor_pos
+    when :left,:right,:up,:down
+      update_pos(MOVES[key])
+      puts "returned"
+    when :ctrl_c
+      Process.exit(0)
+    end
+    puts @cursor_pos
+  end
+
   def update_pos(diff)
-    new_pos = [cursor_pos[0] + diff[0], cursor_pos[1] + diff[1]]
-    @cursor_pos = new_pos if board.valid_pos?(new_pos)
+    delta_x, delta_y = diff
+    x, y = @cursor_pos
+    new_pos = [x + delta_x, y + delta_y]
+    @cursor_pos = new_pos if board.in_bounds?(new_pos)
+    #nil
   end
 end

@@ -1,47 +1,46 @@
-require_relative 'piece'
-
 class Pawn < Piece
 
-  def symbol
-    '♟'.colorize(color)
+  def initialize(board,color)
+    super(board, color)
+    @symbol = '♟'.colorize(color)
   end
 
-  def moves
-    forward_steps + side_attacks
-  end
+  include Steppable
 
   private
 
+  def moves
+    possibles = []
+    if at_start_row? && color == :white
+      possibles = [[-1,0],[-2,0]]
+    elsif at_start_row? && color == :black
+      possibles = [[1,0],[2,0]]
+    else
+      color == :white ? possibles = [1,0] : possibles = [-1,0]
+    end
+    possibles += side_attacks
+  end
+
   def at_start_row?
-    pos[0] == ((color == :white) ? 6 : 1)
-  end
-
-  def forward_dir
-    (color == :white) ? -1 : 1
-  end
-
-  def forward_steps
-    i, j = pos
-    one_step = [i + forward_dir, j]
-    return [] unless board.valid_pos?(one_step) && board.empty?(one_step)
-
-    steps = [one_step]
-    two_step = [i + 2 * forward_dir, j]
-    steps << two_step if at_start_row? && board.empty?(two_step)
-    steps
+    return true if (color == :white && position[0] == 6)
+    return true if (color == :black && position[0] == 1)
+    false
   end
 
   def side_attacks
-    i, j = pos
-
-    side_moves = [[i + forward_dir, j - 1], [i + forward_dir, j + 1]]
-
-    side_moves.select do |new_pos|
-      next false unless board.valid_pos?(new_pos)
-      next false if board.empty?(new_pos)
-
-      threatened_piece = board[new_pos]
-      threatened_piece && threatened_piece.color != color
+    if color == :white
+      attacks = [[-1, -1],[-1, 1]]
+    else
+      attacks = [[1, 1],[1, -1]]
     end
+    attacks.select do |attack|
+      !board[self.sum_coords(attack)].is_a?(NullPiece)
+    end
+  end
+
+  protected
+
+  def sum_coords(coord)
+    [coord.first + self.position.first, coord.last + self.position.last]
   end
 end

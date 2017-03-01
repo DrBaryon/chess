@@ -1,17 +1,13 @@
-require 'singleton'
-require_relative 'piece'
-
 class NullPiece < Piece
-  attr_reader :symbol
-  include Singleton
-
+  attr_reader :color, :symbol
   def initialize
     @symbol = " "
     @color = :none
   end
 
+  include Singleton
+
   def moves
     []
   end
-
 end
