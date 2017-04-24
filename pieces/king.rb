@@ -1,7 +1,10 @@
+require_relative 'piece'
+require_relative 'steppable'
+
 class King < Piece
 
-  def initialize(board,color)
-    super(board, color
+  def initialize(board,color, pos)
+    super(board, color, pos)
     @symbol = '♚'.colorize(color)
   end
 

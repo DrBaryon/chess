@@ -82,7 +82,6 @@ class Cursor
   end
 
   def handle_key(key)
-    #debugger
     case key
     when :return,:space
       puts @cursor_pos

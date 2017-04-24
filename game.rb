@@ -1,5 +1,5 @@
 require_relative 'board'
-require_relative 'piece'
+require_relative 'pieces'
 require_relative 'cursor'
 require_relative 'display'
 
@@ -16,7 +16,7 @@ class Game
     end
   end
 
-  def initialize#(player1, player2)
+  def initialize
     @board = Board.new
     @display = Display.new(board)
     @player1 = HumanPlayer.new(@display)

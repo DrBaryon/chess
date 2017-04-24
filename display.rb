@@ -14,7 +14,6 @@ class Display
   def render
     @board.grid.each_with_index do |row, row_idx|
       row.each_with_index do |piece, piece_idx|
-        #debugger
         if [row_idx, piece_idx] == cursor.cursor_pos
           print "#{piece.symbol}".colorize(:red)
         else

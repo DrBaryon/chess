@@ -23,14 +23,17 @@ class Board
 
   def back_row(color, row)
     pieces = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
-    row_of_pieces = pieces.each_with_index do |piece_class, j|
-      piece_class.new(color, self, [row, j])
+    row_of_pieces = []
+    pieces.each_with_index do |piece_class, j|
+      row_of_pieces << piece_class.new(color, self, [row, j])
     end
     return row_of_pieces
   end
 
   def pawn_row(color, row)
-    8.times { |j| Pawn.new(color, self, [row, j]) }
+    row_of_pieces = []
+    8.times { |j| row_of_pieces << Pawn.new(color, self, [row, j]) }
+    return row_of_pieces
   end
 
   def in_check?(check_color)
@@ -80,7 +83,7 @@ class Board
     if piece.is_a?(NullPiece)
       raise NoPieceError.new ("There is no piece in this starting pos")
     elsif !piece.valid_moves.include?(end_pos)
-      raise "You cannot move here")
+      raise InvalidEndPosition.new ("You cannot move here")
     end
     self[end_pos] = piece
     piece.pos = end_pos

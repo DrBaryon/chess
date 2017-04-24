@@ -8,6 +8,10 @@ class Piece
     @color = color
   end
 
+  def symbol
+    return @symbol
+  end
+
   def empty?
     return true if self.is_a?(NullPiece)
     false

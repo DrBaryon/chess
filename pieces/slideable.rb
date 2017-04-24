@@ -24,7 +24,7 @@ module Slideable
       x,y = self.pos
       while true
         pos = [x + dx, y + dy]
-        unless self.board.in_bounds?(pos)
+        if !self.board.in_bounds?(pos)
           break
         elsif !self.board[pos].empty? && board[pos].color != self.color
           moves << pos
