@@ -8,7 +8,6 @@ class Game
   attr_reader :board, :display
 
   def play
-    puts board
     until board.checkmate?(:cyan) || board.checkmate?(:black)
       @player1.play_turn
 

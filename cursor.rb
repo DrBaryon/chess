@@ -63,6 +63,8 @@ class Cursor
                              # character represented by the keycode.
                              # (e.g. 65.chr => "A")
 
+
+
     if input == "\e" then
       input << STDIN.read_nonblock(3) rescue nil # read_nonblock(maxlen) reads
                                                    # at most maxlen bytes from a
@@ -74,7 +76,7 @@ class Cursor
 
       input << STDIN.read_nonblock(2) rescue nil
     end
-
+  ensure
     STDIN.echo = true # the console prints return values again
     STDIN.cooked! # the opposite of raw mode :)
 
