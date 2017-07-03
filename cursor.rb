@@ -53,48 +53,31 @@ class Cursor
   private
 
   def read_char
-    STDIN.echo = false # stops the console from printing return values
-
-    STDIN.raw! # in raw mode data is given as is to the program--the system
-                 # doesn't preprocess special characters such as control-c
-
-    input = STDIN.getc.chr # STDIN.getc reads a one-character string as a
-                             # numeric keycode. chr returns a string of the
-                             # character represented by the keycode.
-                             # (e.g. 65.chr => "A")
-
-
-
+    STDIN.echo = false
+    STDIN.raw!
+    input = STDIN.getc
     if input == "\e" then
-      input << STDIN.read_nonblock(3) rescue nil # read_nonblock(maxlen) reads
-                                                   # at most maxlen bytes from a
-                                                   # data stream; it's nonblocking,
-                                                   # meaning the method executes
-                                                   # asynchronously; it raises an
-                                                   # error if no data is available,
-                                                   # hence the need for rescue
-
+      input << STDIN.read_nonblock(3) rescue nil
       input << STDIN.read_nonblock(2) rescue nil
     end
-  ensure
-    STDIN.echo = true # the console prints return values again
-    STDIN.cooked! # the opposite of raw mode :)
-
+    STDIN.cooked!
+    STDIN.echo = true
     return input
   end
 
   def handle_key(key)
     case key
-    when :return,:space
-      puts @cursor_pos
-      return @cursor_pos
-    when :left,:right,:up,:down
-      update_pos(MOVES[key])
-      puts "returned"
     when :ctrl_c
-      Process.exit(0)
+      exit 0
+    when :return, :space
+      toggle_selected
+      cursor_pos
+    when :left, :right, :up, :down
+      update_pos(MOVES[key])
+      nil
+    else
+      puts key
     end
-    puts @cursor_pos
   end
 
   def update_pos(diff)
