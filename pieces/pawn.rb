@@ -37,13 +37,13 @@ class Pawn < Piece
       attacks = [[1, 1],[1, -1]]
     end
     attacks.select do |attack|
-      !board[self.sum_coords(attack)].is_a?(NullPiece)
+      self.sum_coords(attack).is_a?(NullPiece)
     end
   end
 
   protected
 
   def sum_coords(coord)
-    [coord.first + self.position.first, coord.last + self.position.last]
+    return [[coord.first + self.pos.first], [coord.last + self.pos.last]]
   end
 end

@@ -17,7 +17,7 @@ class Piece
     false
   end
 
-  def valid_moves(moves)
+  def valid_moves
     moves.reject { |end_pos| move_into_check?(end_pos) }
   end
 
